@@ -4,6 +4,7 @@ import { Dashboard } from './pages/Dashboard';
 import { Alunos } from './pages/Alunos';
 import { Checkin } from './pages/Checkin';
 import { Planos } from './pages/Planos';
+import { Financeiro } from './pages/Financeiro';
 
 function App() {
   return (
@@ -14,7 +15,7 @@ function App() {
           <Route path="checkin" element={<Checkin />} />
           <Route path="alunos" element={<Alunos />} />
           <Route path="planos" element={<Planos />} />
-          <Route path="financeiro" element={<div className="font-display font-bold text-3xl text-white"><h2>Em Construção: Financeiro</h2></div>} />
+          <Route path="financeiro" element={<Financeiro />} />
         </Route>
       </Routes>
     </Router>

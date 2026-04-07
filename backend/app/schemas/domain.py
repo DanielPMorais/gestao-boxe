@@ -107,6 +107,7 @@ class InvoiceCreate(InvoiceBase):
 
 class InvoiceResponse(InvoiceBase):
     id: UUID4
+    enrollment: Optional['EnrollmentResponse'] = None
 
     class Config:
         from_attributes = True

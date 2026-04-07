@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 
 from app.core.database import engine, Base
 import app.models.domain
-from app.api.endpoints import checkin, dashboard, students, plans, enrollments
+from app.api.endpoints import checkin, dashboard, students, plans, enrollments, invoices
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -34,3 +34,4 @@ app.include_router(checkin.router, prefix="/api/checkins", tags=["Checkins"])
 app.include_router(students.router, prefix="/api/students", tags=["Students"])
 app.include_router(plans.router, prefix="/api/plans", tags=["Plans"])
 app.include_router(enrollments.router, prefix="/api/enrollments", tags=["Enrollments"])
+app.include_router(invoices.router, prefix="/api/invoices", tags=["Invoices"])
