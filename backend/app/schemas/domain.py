@@ -35,6 +35,14 @@ class StudentResponse(StudentBase):
     class Config:
         from_attributes = True
 
+# Composite Schema for creating both User and Student at once
+class StudentRegistrationCreate(BaseModel):
+    full_name: str
+    cpf: str
+    email: EmailStr
+    phone: Optional[str] = None
+    technical_level: TechnicalLevelEnum = TechnicalLevelEnum.BEGINNER
+
 # ----------- PLANS -----------
 class PlanBase(BaseModel):
     name: str
