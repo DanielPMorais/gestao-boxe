@@ -1,6 +1,7 @@
+from datetime import datetime
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
-from app.models.domain import User, Student, RoleEnum
+from app.models.domain import User, Student, RoleEnum, Enrollment
 from app.schemas.domain import StudentRegistrationCreate, StudentUpdate
 
 def create_student(db: Session, student_in: StudentRegistrationCreate):
@@ -28,7 +29,10 @@ def create_student(db: Session, student_in: StudentRegistrationCreate):
         phone=student_in.phone,
         birth_date=student_in.birth_date,
         gender=student_in.gender,
-        technical_level=student_in.technical_level
+        technical_level=student_in.technical_level,
+        contract_signed=True if student_in.signature_base64 else False,
+        signature_date=datetime.utcnow() if student_in.signature_base64 else None,
+        signature_base64=student_in.signature_base64
     )
     db.add(new_student)
     
@@ -39,7 +43,20 @@ def create_student(db: Session, student_in: StudentRegistrationCreate):
     return new_student
 
 def get_students(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(Student).offset(skip).limit(limit).all()
+    now_date = datetime.now().date()
+    students = db.query(Student).offset(skip).limit(limit).all()
+    
+    # Adicionando a flag is_enrolled dinamicamente
+    for student in students:
+        active_enrollment = db.query(Enrollment).filter(
+            Enrollment.student_id == student.id,
+            Enrollment.is_active == True,
+            Enrollment.start_date <= now_date,
+            Enrollment.end_date >= now_date
+        ).first()
+        student.is_enrolled = True if active_enrollment else False
+        
+    return students
 
 def update_student(db: Session, student_id: str, student_in: StudentUpdate):
     student = db.query(Student).filter(Student.id == student_id).first()
@@ -78,4 +95,17 @@ def soft_delete_student(db: Session, student_id: str):
     student.user.is_active = False
     db.commit()
     return {"detail": "Aluno desativado com sucesso."}
+
+def toggle_student_status(db: Session, student_id: str):
+    """Alterna o status is_active entre True/False."""
+    student = db.query(Student).filter(Student.id == student_id).first()
+    if not student:
+        raise HTTPException(status_code=404, detail="Aluno não encontrado.")
+    
+    student.user.is_active = not student.user.is_active
+    db.commit()
+    db.refresh(student.user)
+    
+    status_str = "ativado" if student.user.is_active else "desativado"
+    return {"detail": f"Aluno {status_str} com sucesso.", "is_active": student.user.is_active}
 

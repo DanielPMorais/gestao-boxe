@@ -50,7 +50,11 @@ class Student(Base):
     birth_date = Column(Date, nullable=True)
     gender = Column(String, nullable=True)
     technical_level = Column(Enum(TechnicalLevelEnum), default=TechnicalLevelEnum.BEGINNER)
-    medical_cert_status = Column(Enum(CertStatusEnum), default=CertStatusEnum.PENDING)
+    
+    # Substituindo Laudo por Contrato/Assinatura
+    contract_signed = Column(Boolean, default=False)
+    signature_date = Column(DateTime, nullable=True)
+    signature_base64 = Column(String, nullable=True) # Armazena em formato texto/base64 o PNG do desenho
 
     user = relationship("User", back_populates="student_profile")
     enrollments = relationship("Enrollment", back_populates="student")

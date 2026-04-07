@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Search, CheckCircle2, XCircle, Clock, Loader2, ShieldCheck } from 'lucide-react';
+import { Search, CheckCircle2, XCircle, Clock, Loader2, ShieldCheck, User } from 'lucide-react';
 
 type FoundStudent = {
   student_id: string;
@@ -24,6 +24,15 @@ const LEVEL_LABELS: Record<string, string> = {
   BEGINNER: 'Iniciante',
   AMATEUR: 'Amador',
   ATHLETE: 'Atleta Profissional',
+};
+
+const maskCPF = (v: string) => {
+  v = v.replace(/\D/g, "");
+  return v
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d{1,2})/, "$1-$2")
+    .slice(0, 14);
 };
 
 function formatTime(isoString: string) {
@@ -87,12 +96,14 @@ export const Checkin = () => {
 
   const handleCpfSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!cpf.trim()) return;
+    const cleanCPF = cpf.replace(/\D/g, "");
+    if (!cleanCPF) return;
+    
     setSearching(true);
     setSearchError('');
     setFoundStudent(null);
     try {
-      const res = await fetch(`http://localhost:8000/api/checkins/search-student?cpf=${encodeURIComponent(cpf.trim())}`);
+      const res = await fetch(`http://localhost:8000/api/checkins/search-student?cpf=${encodeURIComponent(cleanCPF)}`);
       if (!res.ok) {
         const err = await res.json();
         setSearchError(err.detail ?? 'Aluno não encontrado.');
@@ -131,7 +142,7 @@ export const Checkin = () => {
     }
   };
 
-  const inputCls = 'w-full bg-black/40 border border-white/10 rounded-xl px-5 py-3.5 text-white text-lg outline-none focus:border-boxing-primary transition-colors font-display tracking-widest';
+  const inputCls = 'w-full bg-black/40 border border-white/10 rounded-xl px-5 py-3.5 text-white text-lg outline-none focus:border-boxing-primary transition-colors font-display tracking-[0.2em] placeholder:tracking-normal placeholder:text-gray-600';
 
   return (
     <div className="flex flex-col w-full gap-8">
@@ -139,15 +150,12 @@ export const Checkin = () => {
       <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="font-display font-bold text-3xl md:text-4xl text-white">Catraca Virtual</h1>
-          <p className="text-gray-400 mt-1">Registre a entrada dos atletas pelo CPF</p>
+          <p className="text-gray-400 mt-1">Validação de acesso e frequência</p>
         </div>
-        <div className="flex items-center gap-3 glass-panel px-5 py-3">
-          <Clock size={18} className="text-boxing-primary shrink-0" />
+        <div className="flex items-center gap-3 glass-panel px-5 py-3 border-emerald-500/20">
+          <Clock size={18} className="text-emerald-400 shrink-0" />
           <span className="font-display font-semibold text-white text-lg tabular-nums">
             {currentTime.toLocaleTimeString('pt-BR')}
-          </span>
-          <span className="text-gray-500 text-sm">
-            {currentTime.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit' })}
           </span>
         </div>
       </header>
@@ -158,121 +166,130 @@ export const Checkin = () => {
 
           {/* Área de Feedback */}
           {feedback.type !== 'idle' && (
-            <div className={`glass-panel p-6 flex items-center gap-4 border-2 transition-all ${
+            <div className={`glass-panel p-8 flex items-center gap-6 border-2 transition-all ${
               feedback.type === 'success' ? 'border-emerald-500/50 bg-emerald-500/10' :
               feedback.type === 'error'   ? 'border-red-500/50 bg-red-500/10' :
               'border-white/10'
             }`}>
               {feedback.type === 'loading' && (
                 <><Loader2 className="animate-spin text-white shrink-0" size={32} />
-                  <p className="font-display font-semibold text-white text-lg">Processando...</p></>
+                  <p className="font-display font-semibold text-white text-lg uppercase tracking-wider">Validando...</p></>
               )}
               {feedback.type === 'success' && (
-                <><CheckCircle2 className="text-emerald-400 shrink-0" size={40} />
+                <><CheckCircle2 className="text-emerald-400 shrink-0" size={48} />
                   <div>
-                    <p className="font-display font-bold text-emerald-400 text-xl">Acesso Liberado!</p>
-                    <p className="text-white font-medium mt-0.5">{feedback.name}</p>
+                    <p className="font-display font-bold text-emerald-400 text-2xl uppercase italic tracking-tighter">Acesso Liberado!</p>
+                    <p className="text-white font-medium mt-1 text-lg">{feedback.name}</p>
                     <p className="text-gray-400 text-sm">Registrado às {feedback.time}</p>
                   </div></>
               )}
               {feedback.type === 'error' && (
-                <><XCircle className="text-red-400 shrink-0" size={40} />
+                <><XCircle className="text-red-400 shrink-0" size={48} />
                   <div>
-                    <p className="font-display font-bold text-red-400 text-xl">Acesso Negado</p>
-                    <p className="text-gray-300 text-sm mt-0.5">{feedback.message}</p>
+                    <p className="font-display font-bold text-red-400 text-2xl uppercase italic tracking-tighter">Acesso Negado</p>
+                    <p className="text-gray-300 font-medium mt-1">{feedback.message}</p>
                   </div></>
               )}
             </div>
           )}
 
-          {/* Input CPF */}
-          <div className="glass-panel p-6 flex flex-col gap-4">
-            <div className="flex items-center gap-3 mb-2">
-              <ShieldCheck className="text-boxing-primary" size={24} />
-              <h2 className="font-display font-semibold text-white text-lg">Identificação do Atleta</h2>
+          {/* Input CPF com Máscara */}
+          <div className="glass-panel p-8 flex flex-col gap-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-boxing-primary/10 rounded-lg"><ShieldCheck className="text-boxing-primary" size={24} /></div>
+              <h2 className="font-display font-bold text-white text-xl uppercase italic tracking-tight">Identificação</h2>
             </div>
 
-            <form onSubmit={handleCpfSearch} className="flex gap-3">
-              <input
-                ref={inputRef}
-                type="text"
-                value={cpf}
-                onChange={e => { setCpf(e.target.value); setSearchError(''); setFoundStudent(null); }}
-                placeholder="Digite o CPF..."
-                className={inputCls}
-                disabled={feedback.type === 'loading'}
-              />
+            <form onSubmit={handleCpfSearch} className="flex flex-col gap-4">
+              <div className="relative">
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={cpf}
+                  onChange={e => { setCpf(maskCPF(e.target.value)); setSearchError(''); setFoundStudent(null); }}
+                  placeholder="000.000.000-00"
+                  className={inputCls}
+                  disabled={feedback.type === 'loading'}
+                />
+                {!cpf && <Search className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-600" size={20} />}
+              </div>
+              
               <button
                 type="submit"
-                disabled={searching || !cpf.trim()}
-                className="btn-primary shrink-0 px-5"
-                title="Buscar aluno"
+                disabled={searching || !cpf.trim() || feedback.type !== 'idle'}
+                className="btn-primary w-full py-4 text-lg font-bold uppercase italic tracking-widest shadow-lg shadow-boxing-primary/20"
               >
-                {searching ? <Loader2 className="animate-spin" size={20} /> : <Search size={20} />}
+                {searching ? <Loader2 className="animate-spin" size={24} /> : "Consultar CPF"}
               </button>
             </form>
 
             {searchError && (
-              <p className="text-red-400 text-sm flex items-center gap-2">
-                <XCircle size={16} /> {searchError}
-              </p>
+              <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center gap-3 text-red-400 text-sm font-semibold">
+                <AlertCircle size={18} /> {searchError}
+              </div>
             )}
 
             {/* Card do aluno encontrado */}
             {foundStudent && feedback.type === 'idle' && (
-              <div className="mt-2 p-4 rounded-xl border border-white/10 bg-black/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div>
-                  <p className="font-display font-bold text-white text-lg">{foundStudent.full_name}</p>
-                  <p className="text-gray-400 text-sm mt-0.5">CPF: {foundStudent.cpf}</p>
-                  {foundStudent.technical_level && (
-                    <span className="mt-1.5 inline-block px-2.5 py-0.5 rounded-full text-xs bg-white/10 text-gray-300">
-                      {LEVEL_LABELS[foundStudent.technical_level] ?? foundStudent.technical_level}
-                    </span>
-                  )}
+              <div className="mt-2 p-6 rounded-2xl border border-white/10 bg-white/[0.02] flex flex-col gap-6 animate-in fade-in slide-in-from-top-4 duration-300">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 rounded-full bg-boxing-primary/20 flex items-center justify-center text-boxing-primary border border-boxing-primary/30">
+                      <User size={28} />
+                    </div>
+                    <div>
+                      <p className="font-display font-bold text-white text-2xl leading-tight">{foundStudent.full_name}</p>
+                      <div className="flex items-center gap-3 mt-1">
+                        <span className="text-gray-500 text-xs font-bold uppercase tracking-widest">{maskCPF(foundStudent.cpf)}</span>
+                        {foundStudent.technical_level && (
+                          <span className="px-2 py-0.5 rounded-full text-[10px] bg-white/5 border border-white/10 text-gray-400 font-bold uppercase">
+                            {LEVEL_LABELS[foundStudent.technical_level] ?? foundStudent.technical_level}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </div>
+                
                 <button
-                  className="btn-primary w-full sm:w-auto shrink-0 text-base py-3 px-8"
+                  className="btn-primary w-full py-4 text-lg font-bold uppercase italic tracking-widest bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/20"
                   onClick={handleCheckin}
                 >
-                  <CheckCircle2 size={20} />
-                  Confirmar Check-in
+                  Confirmar Entrada
                 </button>
               </div>
             )}
           </div>
 
-          {/* Dica de atalho */}
-          <p className="text-xs text-gray-600 text-center">
-            Digite o CPF e pressione <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-gray-400 font-mono">Enter</kbd> para buscar. Após localizar, confirme o acesso.
+          <p className="text-[10px] text-gray-600 text-center uppercase font-bold tracking-[0.2em]">
+            Digitaliza e Valida · GestãoBoxe Pro
           </p>
         </div>
 
-        {/* Histórico de Check-ins */}
-        <div className="lg:col-span-2 glass-panel flex flex-col overflow-hidden">
-          <div className="px-5 py-4 border-b border-white/5 flex items-center justify-between">
-            <h3 className="font-display font-semibold text-white">Histórico Recente</h3>
-            <button
-              onClick={fetchRecent}
-              className="text-xs text-gray-400 hover:text-white transition-colors"
-            >
-              Atualizar
-            </button>
+        {/* Histórico Lateral */}
+        <div className="lg:col-span-2 glass-panel flex flex-col overflow-hidden max-h-[600px]">
+          <div className="px-6 py-5 border-b border-white/5 flex items-center justify-between bg-black/20">
+            <h3 className="font-display font-bold text-white uppercase text-sm tracking-widest italic">Últimos Acessos</h3>
+            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
           </div>
-          <div className="overflow-y-auto flex-1 divide-y divide-white/5">
+          <div className="overflow-y-auto flex-1 divide-y divide-white/5 no-scrollbar">
             {recentCheckins.length === 0 ? (
-              <p className="text-center text-gray-500 py-10 text-sm">Nenhum check-in registrado ainda.</p>
+              <p className="text-center text-gray-500 py-12 text-xs uppercase font-bold tracking-widest opacity-30 italic">Sem registros recentes</p>
             ) : (
               recentCheckins.map((c, i) => (
-                <div key={c.id} className={`px-5 py-3 flex items-center justify-between gap-2 ${i === 0 ? 'bg-emerald-500/5' : ''}`}>
+                <div key={c.id} className={`px-6 py-4 flex items-center justify-between gap-4 transition-colors ${i === 0 ? 'bg-emerald-500/5' : ''}`}>
                   <div className="flex items-center gap-3">
-                    <div className={`w-2 h-2 rounded-full shrink-0 ${i === 0 ? 'bg-emerald-400' : 'bg-gray-600'}`} />
+                    <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-gray-500">
+                      <User size={16} />
+                    </div>
                     <div>
-                      <p className="text-sm text-gray-300 font-medium font-mono truncate max-w-[120px]" title={c.student_id}>
-                        {c.student_id.slice(0, 8)}…
+                      <p className="text-xs text-gray-400 font-bold uppercase tracking-tight truncate max-w-[140px]">
+                        ID: {c.student_id.slice(0, 8)}...
                       </p>
+                      <p className="text-[10px] text-gray-600 font-medium">Auto-validado</p>
                     </div>
                   </div>
-                  <span className="text-xs text-gray-500 shrink-0">{formatDateTime(c.checkin_date)}</span>
+                  <span className="text-[10px] text-gray-500 font-bold font-mono tracking-tighter">{formatDateTime(c.checkin_date)}</span>
                 </div>
               ))
             )}

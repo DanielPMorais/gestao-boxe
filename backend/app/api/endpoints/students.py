@@ -28,3 +28,8 @@ def disable_student(student_id: str, db: Session = Depends(get_db)):
     """Aplica o Soft-Delete (Desativa) em um aluno e seu respectivo usuário global."""
     return student_service.soft_delete_student(db=db, student_id=student_id)
 
+@router.patch("/{student_id}/toggle-status", status_code=200)
+def toggle_status(student_id: str, db: Session = Depends(get_db)):
+    """Faz a troca do status Ativo/Inativo do aluno."""
+    return student_service.toggle_student_status(db=db, student_id=student_id)
+

@@ -28,7 +28,9 @@ class StudentBase(BaseModel):
     birth_date: Optional[date] = None
     gender: Optional[str] = None
     technical_level: TechnicalLevelEnum = TechnicalLevelEnum.BEGINNER
-    medical_cert_status: CertStatusEnum = CertStatusEnum.PENDING
+    contract_signed: bool = False
+    signature_date: Optional[datetime] = None
+    signature_base64: Optional[str] = None
 
 class StudentCreate(StudentBase):
     user_id: UUID4
@@ -36,6 +38,7 @@ class StudentCreate(StudentBase):
 class StudentResponse(StudentBase):
     id: UUID4
     user: UserResponse
+    is_enrolled: bool = False
 
     class Config:
         from_attributes = True
@@ -49,6 +52,7 @@ class StudentRegistrationCreate(BaseModel):
     birth_date: Optional[date] = None
     gender: Optional[str] = None
     technical_level: TechnicalLevelEnum = TechnicalLevelEnum.BEGINNER
+    signature_base64: Optional[str] = None # Imagem da assinatura OPCIONAL no JSON base
 
 # Schema for updating an existing student (all fields optional)
 class StudentUpdate(BaseModel):
