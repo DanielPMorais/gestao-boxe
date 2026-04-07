@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from app.core.database import get_db
-from app.schemas.domain import StudentResponse, StudentRegistrationCreate
+from app.schemas.domain import StudentResponse, StudentRegistrationCreate, StudentUpdate
 from app.services import student_service
 
 router = APIRouter()
@@ -18,7 +18,13 @@ def register_student(student_in: StudentRegistrationCreate, db: Session = Depend
     """Cadastra um Aluno unificando dados de Usuário em uma transação limpa."""
     return student_service.create_student(db=db, student_in=student_in)
 
+@router.put("/{student_id}", response_model=StudentResponse)
+def update_student(student_id: str, student_in: StudentUpdate, db: Session = Depends(get_db)):
+    """Atualiza os dados de um aluno existente (nome, email, telefone, nível, etc.)."""
+    return student_service.update_student(db=db, student_id=student_id, student_in=student_in)
+
 @router.delete("/{student_id}", status_code=200)
 def disable_student(student_id: str, db: Session = Depends(get_db)):
     """Aplica o Soft-Delete (Desativa) em um aluno e seu respectivo usuário global."""
     return student_service.soft_delete_student(db=db, student_id=student_id)
+

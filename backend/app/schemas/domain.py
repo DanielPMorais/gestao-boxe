@@ -50,6 +50,15 @@ class StudentRegistrationCreate(BaseModel):
     gender: Optional[str] = None
     technical_level: TechnicalLevelEnum = TechnicalLevelEnum.BEGINNER
 
+# Schema for updating an existing student (all fields optional)
+class StudentUpdate(BaseModel):
+    full_name: Optional[str] = None
+    email: Optional[EmailStr] = None
+    phone: Optional[str] = None
+    birth_date: Optional[date] = None
+    gender: Optional[str] = None
+    technical_level: Optional[TechnicalLevelEnum] = None
+
 # ----------- PLANS -----------
 class PlanBase(BaseModel):
     name: str
