@@ -1,5 +1,5 @@
 import { Outlet, NavLink } from 'react-router-dom';
-import { Home, Users, CreditCard, Activity, ShieldCheck } from 'lucide-react';
+import { Home, Users, CreditCard, Activity } from 'lucide-react';
 
 const Sidebar = () => {
   return (
