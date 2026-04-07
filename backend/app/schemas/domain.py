@@ -88,6 +88,8 @@ class EnrollmentCreate(EnrollmentBase):
 
 class EnrollmentResponse(EnrollmentBase):
     id: UUID4
+    student: Optional['StudentResponse'] = None
+    plan: Optional[PlanResponse] = None
 
     class Config:
         from_attributes = True

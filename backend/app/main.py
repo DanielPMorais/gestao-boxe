@@ -3,8 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
 from app.core.database import engine, Base
-import app.models.domain  # importa para registrar no metadata do SQLAlchemy
-from app.api.endpoints import checkin, dashboard, students
+import app.models.domain
+from app.api.endpoints import checkin, dashboard, students, plans, enrollments
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -32,3 +32,5 @@ def read_root():
 app.include_router(dashboard.router, prefix="/api/dashboard", tags=["Dashboard"])
 app.include_router(checkin.router, prefix="/api/checkins", tags=["Checkins"])
 app.include_router(students.router, prefix="/api/students", tags=["Students"])
+app.include_router(plans.router, prefix="/api/plans", tags=["Plans"])
+app.include_router(enrollments.router, prefix="/api/enrollments", tags=["Enrollments"])

@@ -1,5 +1,5 @@
 import { Outlet, NavLink } from 'react-router-dom';
-import { Home, Users, CreditCard, Activity } from 'lucide-react';
+import { Home, Users, CreditCard, Activity, BookOpen } from 'lucide-react';
 
 const Sidebar = () => {
   return (
@@ -34,6 +34,12 @@ const Sidebar = () => {
             <NavLink to="/financeiro" className={({ isActive }) => `flex items-center gap-3 px-3 md:px-4 py-2 md:py-3 rounded md:rounded-lg font-display font-medium text-gray-400 hover:text-white hover:bg-white/5 transition-all border-b-2 md:border-b-0 md:border-l-4 ${isActive ? 'border-boxing-primary text-boxing-primary bg-boxing-primary/10' : 'border-transparent'}`}>
               <CreditCard className="w-5 h-5 shrink-0" />
               <span className="hidden md:inline">Financeiro</span>
+            </NavLink>
+          </li>
+          <li>
+            <NavLink to="/planos" className={({ isActive }) => `flex items-center gap-3 px-3 md:px-4 py-2 md:py-3 rounded md:rounded-lg font-display font-medium text-gray-400 hover:text-white hover:bg-white/5 transition-all border-b-2 md:border-b-0 md:border-l-4 ${isActive ? 'border-boxing-primary text-boxing-primary bg-boxing-primary/10' : 'border-transparent'}`}>
+              <BookOpen className="w-5 h-5 shrink-0" />
+              <span className="hidden md:inline">Planos</span>
             </NavLink>
           </li>
         </ul>
