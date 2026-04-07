@@ -26,6 +26,8 @@ def create_student(db: Session, student_in: StudentRegistrationCreate):
     new_student = Student(
         user_id=new_user.id,
         phone=student_in.phone,
+        birth_date=student_in.birth_date,
+        gender=student_in.gender,
         technical_level=student_in.technical_level
     )
     db.add(new_student)
@@ -38,3 +40,12 @@ def create_student(db: Session, student_in: StudentRegistrationCreate):
 
 def get_students(db: Session, skip: int = 0, limit: int = 100):
     return db.query(Student).offset(skip).limit(limit).all()
+
+def soft_delete_student(db: Session, student_id: str):
+    student = db.query(Student).filter(Student.id == student_id).first()
+    if not student:
+        raise HTTPException(status_code=404, detail="Aluno não encontrado na base de dados.")
+    
+    student.user.is_active = False
+    db.commit()
+    return {"detail": "Aluno desativado com sucesso."}

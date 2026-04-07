@@ -17,3 +17,8 @@ def read_students(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)
 def register_student(student_in: StudentRegistrationCreate, db: Session = Depends(get_db)):
     """Cadastra um Aluno unificando dados de Usuário em uma transação limpa."""
     return student_service.create_student(db=db, student_in=student_in)
+
+@router.delete("/{student_id}", status_code=200)
+def disable_student(student_id: str, db: Session = Depends(get_db)):
+    """Aplica o Soft-Delete (Desativa) em um aluno e seu respectivo usuário global."""
+    return student_service.soft_delete_student(db=db, student_id=student_id)

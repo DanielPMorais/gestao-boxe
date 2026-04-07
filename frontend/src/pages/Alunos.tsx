@@ -1,184 +1,353 @@
 import { useState, useEffect } from 'react';
-import { UserPlus, Search, X, Loader2 } from 'lucide-react';
+import { UserPlus, Search, X, Loader2, Pencil, Trash2 } from 'lucide-react';
+
+type Student = {
+  id: string;
+  phone: string | null;
+  birth_date: string | null;
+  gender: string | null;
+  technical_level: string;
+  medical_cert_status: string;
+  user: {
+    id: string;
+    full_name: string;
+    cpf: string;
+    email: string;
+    is_active: boolean;
+    created_at: string;
+    last_update: string;
+  };
+};
+
+const LEVEL_LABELS: Record<string, string> = {
+  BEGINNER: 'Iniciante',
+  AMATEUR: 'Amador',
+  ATHLETE: 'Atleta',
+};
+
+const GENDER_LABELS: Record<string, string> = {
+  M: 'Masculino',
+  F: 'Feminino',
+  OUTRO: 'Outro',
+};
+
+const CERT_LABELS: Record<string, { label: string; color: string }> = {
+  VALID: { label: 'Válido', color: 'text-emerald-400' },
+  PENDING: { label: 'Pendente', color: 'text-amber-400' },
+  EXPIRED: { label: 'Expirado', color: 'text-red-400' },
+};
+
+const EMPTY_FORM = {
+  full_name: '',
+  cpf: '',
+  email: '',
+  phone: '',
+  birth_date: '',
+  gender: '',
+  technical_level: 'BEGINNER',
+};
 
 export const Alunos = () => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [students, setStudents] = useState<any[]>([]);
+  const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  
-  // Form State
-  const [formData, setFormData] = useState({
-    full_name: '',
-    cpf: '',
-    email: '',
-    phone: '',
-    technical_level: 'BEGINNER'
-  });
+  const [formData, setFormData] = useState(EMPTY_FORM);
+
+  const filtered = students.filter(
+    (s) =>
+      s.user.full_name.toLowerCase().includes(search.toLowerCase()) ||
+      s.user.cpf.includes(search)
+  );
 
   const fetchStudents = async () => {
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:8000/api/students/');
-      if (!response.ok) throw new Error("Erro na rede");
-      const data = await response.json();
-      setStudents(data);
-    } catch (err) {
-      console.error(err);
+      const res = await fetch('http://localhost:8000/api/students/');
+      if (!res.ok) throw new Error();
+      setStudents(await res.json());
+    } catch {
+      console.error('Falha ao carregar alunos');
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchStudents();
-  }, []);
+  useEffect(() => { fetchStudents(); }, []);
+
+  const openModal = () => {
+    setFormData(EMPTY_FORM);
+    setIsModalOpen(true);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
     try {
-      const response = await fetch('http://localhost:8000/api/students/', {
+      const payload = {
+        ...formData,
+        birth_date: formData.birth_date || null,
+        gender: formData.gender || null,
+      };
+      const res = await fetch('http://localhost:8000/api/students/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(payload),
       });
-      
-      if (!response.ok) {
-        const error = await response.json();
-        alert(`Erro: ${error.detail}`);
-      } else {
-        setIsModalOpen(false);
-        setFormData({ full_name: '', cpf: '', email: '', phone: '', technical_level: 'BEGINNER' });
-        fetchStudents(); // recarrega a tabela base
+      if (!res.ok) {
+        const err = await res.json();
+        alert(`Erro: ${err.detail}`);
+        return;
       }
-    } catch (err) {
-      console.error(err);
-      alert("Falha de conexão com a API.");
+      setIsModalOpen(false);
+      fetchStudents();
+    } catch {
+      alert('Falha de conexão com a API.');
     } finally {
       setSubmitting(false);
     }
   };
 
+  const handleSoftDelete = async (student: Student) => {
+    const name = student.user.full_name;
+    if (!confirm(`Desativar o aluno "${name}"? Esta ação pode ser revertida futuramente.`)) return;
+    try {
+      await fetch(`http://localhost:8000/api/students/${student.id}`, { method: 'DELETE' });
+      fetchStudents();
+    } catch {
+      alert('Erro ao desativar aluno.');
+    }
+  };
+
+  const input = 'w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2.5 text-white outline-none focus:border-boxing-primary transition-colors text-sm';
+
   return (
-    <div className="flex flex-col w-full h-full gap-8 relative">
-      <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 w-full">
+    <div className="flex flex-col w-full gap-8">
+      {/* Header */}
+      <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
           <h1 className="font-display font-bold text-3xl md:text-4xl text-white">Alunos</h1>
           <p className="text-gray-400 mt-1">Gestão de matrículas e perfis dos atletas</p>
         </div>
-        <button 
-          className="btn-primary w-full md:w-auto"
-          onClick={() => setIsModalOpen(true)}
-        >
+        <button className="btn-primary w-full md:w-auto" onClick={openModal}>
           <UserPlus size={18} />
           Novo Aluno
         </button>
       </header>
 
-      <div className="glass-panel overflow-hidden flex flex-col w-full">
-        <div className="p-4 border-b border-white/5 flex gap-4">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-            <input 
-              type="text" 
-              placeholder="Buscar aluno por nome ou CPF..." 
-              className="w-full bg-black/40 border border-white/10 rounded-lg pl-10 pr-4 py-2 text-sm text-white outline-none focus:border-boxing-primary transition-colors"
+      {/* Table Card */}
+      <div className="glass-panel overflow-hidden">
+        {/* Search Bar */}
+        <div className="p-4 border-b border-white/5">
+          <div className="relative max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Buscar por nome ou CPF..."
+              className={`${input} pl-9`}
             />
           </div>
         </div>
-        
-        <div className="overflow-x-auto w-full">
+
+        {/* Table */}
+        <div className="overflow-x-auto">
           <table className="w-full text-left text-sm text-gray-300">
-            <thead className="text-xs uppercase bg-black/20 text-gray-400">
+            <thead className="text-xs uppercase bg-black/20 text-gray-500">
               <tr>
                 <th className="px-6 py-4 font-medium tracking-wider">Aluno</th>
                 <th className="px-6 py-4 font-medium tracking-wider">Contato</th>
                 <th className="px-6 py-4 font-medium tracking-wider">Nível</th>
-                <th className="px-6 py-4 font-medium tracking-wider">Exame Médico</th>
+                <th className="px-6 py-4 font-medium tracking-wider">Nascimento</th>
+                <th className="px-6 py-4 font-medium tracking-wider">Laudo Médico</th>
+                <th className="px-6 py-4 font-medium tracking-wider">Status</th>
+                <th className="px-6 py-4 font-medium tracking-wider text-right">Ações</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={4} className="text-center py-8">Carregando...</td></tr>
-              ) : students.length === 0 ? (
-                <tr><td colSpan={4} className="text-center py-8">Nenhum aluno matriculado ainda.</td></tr>
+                <tr>
+                  <td colSpan={7} className="text-center py-12 text-gray-500">
+                    <Loader2 className="animate-spin inline-block mr-2" size={18} />
+                    Carregando alunos...
+                  </td>
+                </tr>
+              ) : filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="text-center py-12 text-gray-500">
+                    {search ? 'Nenhum aluno encontrado para esta busca.' : 'Nenhum aluno cadastrado ainda.'}
+                  </td>
+                </tr>
               ) : (
-                students.map((student) => (
-                  <tr key={student.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="font-medium text-white">{student.user?.full_name}</div>
-                      <div className="text-xs text-gray-500 mt-0.5">{student.user?.cpf}</div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div>{student.user?.email}</div>
-                      <div className="text-xs text-gray-500 mt-0.5">{student.phone || 'Sem telefone'}</div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-white/10 text-gray-300 whitespace-nowrap">
-                        {student.technical_level}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      {student.medical_cert_status === 'VALID' && <span className="text-emerald-500 font-medium">Válido</span>}
-                      {student.medical_cert_status === 'PENDING' && <span className="text-amber-500 font-medium">Pendente</span>}
-                      {student.medical_cert_status === 'EXPIRED' && <span className="text-red-500 font-medium">Expirado</span>}
-                    </td>
-                  </tr>
-                ))
+                filtered.map((student) => {
+                  const cert = CERT_LABELS[student.medical_cert_status] ?? { label: '-', color: 'text-gray-400' };
+                  const isActive = student.user.is_active;
+                  const birthDate = student.birth_date
+                    ? new Date(student.birth_date).toLocaleDateString('pt-BR')
+                    : '—';
+                  return (
+                    <tr
+                      key={student.id}
+                      className={`border-b border-white/5 hover:bg-white/5 transition-colors ${!isActive ? 'opacity-50' : ''}`}
+                    >
+                      <td className="px-6 py-4">
+                        <div className="font-medium text-white">{student.user.full_name}</div>
+                        <div className="text-xs text-gray-500 mt-0.5">{student.user.cpf}</div>
+                        {student.gender && (
+                          <div className="text-xs text-gray-600 mt-0.5">{GENDER_LABELS[student.gender] ?? student.gender}</div>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div>{student.user.email}</div>
+                        <div className="text-xs text-gray-500 mt-0.5">{student.phone ?? 'Sem telefone'}</div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-white/10 text-gray-300">
+                          {LEVEL_LABELS[student.technical_level] ?? student.technical_level}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-gray-400 text-xs">{birthDate}</td>
+                      <td className={`px-6 py-4 font-medium ${cert.color}`}>{cert.label}</td>
+                      <td className="px-6 py-4">
+                        {isActive ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-400">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
+                            Ativo
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-500/15 text-gray-400">
+                            <span className="w-1.5 h-1.5 rounded-full bg-gray-400 inline-block" />
+                            Inativo
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            title="Editar aluno"
+                            className="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+                            onClick={() => alert('Edição em breve!')}
+                          >
+                            <Pencil size={16} />
+                          </button>
+                          {isActive && (
+                            <button
+                              title="Desativar aluno"
+                              className="p-2 rounded-lg text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                              onClick={() => handleSoftDelete(student)}
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
         </div>
+
+        {/* Footer count */}
+        {!loading && (
+          <div className="px-6 py-3 border-t border-white/5 text-xs text-gray-500">
+            {filtered.length} aluno{filtered.length !== 1 ? 's' : ''} encontrado{filtered.length !== 1 ? 's' : ''}
+          </div>
+        )}
       </div>
 
-      {/* Modal Glassmorphism de Cadastro */}
+      {/* Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsModalOpen(false)}></div>
-          <div className="relative bg-zinc-900 border border-white/10 shadow-2xl rounded-2xl w-full max-w-lg p-6 sm:p-8 animate-[fadeIn_0.2s_ease-out]">
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setIsModalOpen(false)}
+          />
+          <div className="relative bg-zinc-900 border border-white/10 shadow-2xl rounded-2xl w-full max-w-lg p-6 sm:p-8 overflow-y-auto max-h-[90vh]"
+            style={{ animation: 'fadeIn 0.2s ease-out' }}>
             <div className="flex justify-between items-center mb-6">
               <h2 className="font-display text-2xl font-bold text-white">Cadastrar Aluno</h2>
-              <button type="button" onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-white transition-colors">
+              <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-white transition-colors">
                 <X size={24} />
               </button>
             </div>
-            
+
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+              {/* Nome */}
               <div>
-                <label className="block text-sm font-medium text-gray-400 mb-1">Nome Completo</label>
-                <input required type="text" value={formData.full_name} onChange={e => setFormData({...formData, full_name: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2.5 text-white outline-none focus:border-boxing-primary transition-colors" placeholder="Ex: Popó Freitas" />
+                <label className="block text-sm font-medium text-gray-400 mb-1">Nome Completo *</label>
+                <input required type="text" value={formData.full_name}
+                  onChange={e => setFormData({ ...formData, full_name: e.target.value })}
+                  className={input} placeholder="Ex: Muhammad Ali" />
               </div>
+
+              {/* CPF + Telefone */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">CPF</label>
-                  <input required type="text" value={formData.cpf} onChange={e => setFormData({...formData, cpf: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2.5 text-white outline-none focus:border-boxing-primary transition-colors" placeholder="000.000.000-00" />
+                  <label className="block text-sm font-medium text-gray-400 mb-1">CPF *</label>
+                  <input required type="text" value={formData.cpf}
+                    onChange={e => setFormData({ ...formData, cpf: e.target.value })}
+                    className={input} placeholder="000.000.000-00" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-400 mb-1">Telefone</label>
-                  <input type="text" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2.5 text-white outline-none focus:border-boxing-primary transition-colors" placeholder="(00) 00000-0000" />
+                  <input type="text" value={formData.phone}
+                    onChange={e => setFormData({ ...formData, phone: e.target.value })}
+                    className={input} placeholder="(00) 00000-0000" />
                 </div>
               </div>
+
+              {/* Email */}
               <div>
-                <label className="block text-sm font-medium text-gray-400 mb-1">E-mail</label>
-                <input required type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2.5 text-white outline-none focus:border-boxing-primary transition-colors" placeholder="email@exemplo.com" />
+                <label className="block text-sm font-medium text-gray-400 mb-1">E-mail *</label>
+                <input required type="email" value={formData.email}
+                  onChange={e => setFormData({ ...formData, email: e.target.value })}
+                  className={input} placeholder="email@exemplo.com" />
               </div>
+
+              {/* Nascimento + Sexo */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">Data de Nascimento</label>
+                  <input type="date" value={formData.birth_date}
+                    onChange={e => setFormData({ ...formData, birth_date: e.target.value })}
+                    className={`${input} [color-scheme:dark]`} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">Sexo</label>
+                  <select value={formData.gender}
+                    onChange={e => setFormData({ ...formData, gender: e.target.value })}
+                    className={`${input} appearance-none`}>
+                    <option className="bg-zinc-800" value="">Prefiro não informar</option>
+                    <option className="bg-zinc-800" value="M">Masculino</option>
+                    <option className="bg-zinc-800" value="F">Feminino</option>
+                    <option className="bg-zinc-800" value="OUTRO">Outro</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Nível Técnico */}
               <div>
-                <label className="block text-sm font-medium text-gray-400 mb-1">Nível Técnico de Boxe</label>
-                <select value={formData.technical_level} onChange={e => setFormData({...formData, technical_level: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2.5 text-white outline-none focus:border-boxing-primary transition-colors appearance-none">
+                <label className="block text-sm font-medium text-gray-400 mb-1">Nível Técnico</label>
+                <select value={formData.technical_level}
+                  onChange={e => setFormData({ ...formData, technical_level: e.target.value })}
+                  className={`${input} appearance-none`}>
                   <option className="bg-zinc-800" value="BEGINNER">Iniciante</option>
                   <option className="bg-zinc-800" value="AMATEUR">Amador (Competição)</option>
                   <option className="bg-zinc-800" value="ATHLETE">Atleta Profissional</option>
                 </select>
               </div>
-              
+
               <div className="mt-4 pt-4 border-t border-white/10 flex justify-end gap-3">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="px-5 py-2.5 rounded-lg font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-colors">
+                <button type="button" onClick={() => setIsModalOpen(false)}
+                  className="px-5 py-2.5 rounded-lg font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-colors">
                   Cancelar
                 </button>
                 <button type="submit" disabled={submitting} className="btn-primary">
-                  {submitting ? <Loader2 className="animate-spin" size={18} /> : "Finalizar Cadastro"}
+                  {submitting ? <Loader2 className="animate-spin" size={18} /> : 'Finalizar Cadastro'}
                 </button>
               </div>
             </form>
@@ -187,7 +356,7 @@ export const Alunos = () => {
       )}
 
       <style>{`
-        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
       `}</style>
     </div>
   );

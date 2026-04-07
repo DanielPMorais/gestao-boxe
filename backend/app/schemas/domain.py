@@ -9,12 +9,15 @@ class UserBase(BaseModel):
     cpf: str
     email: EmailStr
     role: RoleEnum
+    is_active: bool = True
 
 class UserCreate(UserBase):
     pass
 
 class UserResponse(UserBase):
     id: UUID4
+    created_at: datetime
+    last_update: datetime
 
     class Config:
         from_attributes = True
@@ -22,6 +25,8 @@ class UserResponse(UserBase):
 # ----------- STUDENTS -----------
 class StudentBase(BaseModel):
     phone: Optional[str] = None
+    birth_date: Optional[date] = None
+    gender: Optional[str] = None
     technical_level: TechnicalLevelEnum = TechnicalLevelEnum.BEGINNER
     medical_cert_status: CertStatusEnum = CertStatusEnum.PENDING
 
@@ -41,6 +46,8 @@ class StudentRegistrationCreate(BaseModel):
     cpf: str
     email: EmailStr
     phone: Optional[str] = None
+    birth_date: Optional[date] = None
+    gender: Optional[str] = None
     technical_level: TechnicalLevelEnum = TechnicalLevelEnum.BEGINNER
 
 # ----------- PLANS -----------

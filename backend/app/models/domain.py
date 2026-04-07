@@ -34,6 +34,9 @@ class User(Base):
     cpf = Column(String, unique=True, nullable=False)
     email = Column(String, unique=True, nullable=False)
     role = Column(Enum(RoleEnum), nullable=False)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    last_update = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     student_profile = relationship("Student", back_populates="user", uselist=False)
     teacher_profile = relationship("Teacher", back_populates="user", uselist=False)
@@ -44,6 +47,8 @@ class Student(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     phone = Column(String)
+    birth_date = Column(Date, nullable=True)
+    gender = Column(String, nullable=True)
     technical_level = Column(Enum(TechnicalLevelEnum), default=TechnicalLevelEnum.BEGINNER)
     medical_cert_status = Column(Enum(CertStatusEnum), default=CertStatusEnum.PENDING)
 
