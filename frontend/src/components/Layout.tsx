@@ -3,51 +3,54 @@ import { Home, Users, CreditCard, Activity, ShieldCheck } from 'lucide-react';
 
 const Sidebar = () => {
   return (
-    <aside className="sidebar">
-      <div className="sidebar-logo">
-        <ShieldCheck size={32} color="var(--primary)" />
-        <h2>Gestão<span className="highlight">Boxe</span></h2>
+    <aside className="w-full md:w-64 shrink-0 border-b md:border-b-0 md:border-r border-boxing-border bg-boxing-surface p-4 md:p-6 flex flex-row md:flex-col gap-4 md:gap-8 justify-between items-center md:items-stretch z-10 sticky top-0 md:top-auto overflow-hidden shadow-md md:shadow-none">
+
+      <div className="flex items-center gap-3 text-white">
+        <h2 className="font-display font-bold text-lg md:text-xl whitespace-nowrap block">Gestão<span className="text-boxing-primary uppercase">Boxe</span></h2>
       </div>
 
-      <nav>
-        <div className="nav-section-title">Menu Principal</div>
-        <ul className="nav-links">
+      <nav className="flex-1 flex justify-end md:justify-start w-auto md:w-full overflow-x-auto no-scrollbar">
+
+        <ul className="flex flex-row md:flex-col gap-2 w-auto md:w-full">
           <li>
-            <NavLink to="/" className={({ isActive }) => (isActive ? 'nav-item active' : 'nav-item')}>
-              <Home size={20} />
-              Dashboard
+            <NavLink to="/" className={({ isActive }) => `flex items-center gap-3 px-3 md:px-4 py-2 md:py-3 rounded md:rounded-lg font-display font-medium text-gray-400 hover:text-white hover:bg-white/5 transition-all border-b-2 md:border-b-0 md:border-l-4 ${isActive ? 'border-boxing-primary text-boxing-primary bg-boxing-primary/10' : 'border-transparent'}`}>
+              <Home className="w-5 h-5 shrink-0" />
+              <span className="hidden md:inline">Dashboard</span>
             </NavLink>
           </li>
           <li>
-            <NavLink to="/checkin" className={({ isActive }) => (isActive ? 'nav-item active' : 'nav-item')}>
-              <Activity size={20} />
-              Check-in Alunos
+            <NavLink to="/checkin" className={({ isActive }) => `flex items-center gap-3 px-3 md:px-4 py-2 md:py-3 rounded md:rounded-lg font-display font-medium text-gray-400 hover:text-white hover:bg-white/5 transition-all border-b-2 md:border-b-0 md:border-l-4 ${isActive ? 'border-boxing-primary text-boxing-primary bg-boxing-primary/10' : 'border-transparent'}`}>
+              <Activity className="w-5 h-5 shrink-0" />
+              <span className="hidden md:inline">Check-in</span>
             </NavLink>
           </li>
           <li>
-            <NavLink to="/alunos" className={({ isActive }) => (isActive ? 'nav-item active' : 'nav-item')}>
-              <Users size={20} />
-              Gestão de Alunos
+            <NavLink to="/alunos" className={({ isActive }) => `flex items-center gap-3 px-3 md:px-4 py-2 md:py-3 rounded md:rounded-lg font-display font-medium text-gray-400 hover:text-white hover:bg-white/5 transition-all border-b-2 md:border-b-0 md:border-l-4 ${isActive ? 'border-boxing-primary text-boxing-primary bg-boxing-primary/10' : 'border-transparent'}`}>
+              <Users className="w-5 h-5 shrink-0" />
+              <span className="hidden md:inline">Alunos</span>
             </NavLink>
           </li>
           <li>
-            <NavLink to="/financeiro" className={({ isActive }) => (isActive ? 'nav-item active' : 'nav-item')}>
-              <CreditCard size={20} />
-              Financeiro
+            <NavLink to="/financeiro" className={({ isActive }) => `flex items-center gap-3 px-3 md:px-4 py-2 md:py-3 rounded md:rounded-lg font-display font-medium text-gray-400 hover:text-white hover:bg-white/5 transition-all border-b-2 md:border-b-0 md:border-l-4 ${isActive ? 'border-boxing-primary text-boxing-primary bg-boxing-primary/10' : 'border-transparent'}`}>
+              <CreditCard className="w-5 h-5 shrink-0" />
+              <span className="hidden md:inline">Financeiro</span>
             </NavLink>
           </li>
         </ul>
       </nav>
+
     </aside>
   );
 };
 
 export const Layout = () => {
   return (
-    <div className="app-layout">
+    <div className="flex flex-col md:flex-row min-h-screen w-full max-w-[100vw] overflow-x-hidden relative">
       <Sidebar />
-      <main className="main-content">
-        <Outlet />
+      <main className="flex-1 w-full max-w-full overflow-y-auto p-4 md:p-8 lg:p-10">
+        <div className="w-full max-w-7xl mx-auto flex flex-col gap-8">
+          <Outlet />
+        </div>
       </main>
     </div>
   );

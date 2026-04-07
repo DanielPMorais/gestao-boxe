@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 
 from app.core.database import engine, Base
 import app.models.domain  # importa para registrar no metadata do SQLAlchemy
-from app.api.endpoints import checkin
+from app.api.endpoints import checkin, dashboard
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -29,4 +29,5 @@ def read_root():
     return {"message": "Bem-vindo à API do GestaoBoxe! Base de dados sincronizada."}
 
 # Registrar rotas
+app.include_router(dashboard.router, prefix="/api/dashboard", tags=["Dashboard"])
 app.include_router(checkin.router, prefix="/api/checkins", tags=["Checkins"])
