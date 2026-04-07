@@ -89,6 +89,9 @@ class Enrollment(Base):
     start_date = Column(Date, nullable=False)
     end_date = Column(Date, nullable=False)
     is_active = Column(Boolean, default=True)
+    contract_signed = Column(Boolean, default=False)
+    signature_date = Column(DateTime, nullable=True)
+    signature_base64 = Column(String, nullable=True)
 
     student = relationship("Student", back_populates="enrollments")
     plan = relationship("Plan", back_populates="enrollments")

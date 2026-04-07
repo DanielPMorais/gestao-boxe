@@ -10,6 +10,7 @@ type Student = {
   technical_level: string;
   contract_signed: boolean;
   signature_date: string | null;
+  signature_base64: string | null;
   is_enrolled: boolean;
   user: {
     id: string;
@@ -63,6 +64,7 @@ export const Alunos = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState(EMPTY_FORM);
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
@@ -290,9 +292,12 @@ export const Alunos = () => {
                       </td>
                       <td className="px-6 py-4">
                         {student.contract_signed ? (
-                          <div className="flex items-center gap-1.5 text-emerald-400 text-[10px] font-bold uppercase">
+                          <button 
+                            onClick={() => { setEditingStudent(student); setIsViewModalOpen(true); }}
+                            className="flex items-center gap-1.5 text-emerald-400 font-bold hover:underline uppercase text-[10px]"
+                          >
                             <ShieldCheck size={14} /> Assinado
-                          </div>
+                          </button>
                         ) : (
                           <div className="flex items-center gap-1.5 text-amber-400 text-[10px] font-bold uppercase">
                             <AlertCircle size={14} /> Pendente
@@ -534,6 +539,19 @@ export const Alunos = () => {
                 Voltar
               </button>
             </div>
+          </div>
+        </div>
+      )}
+      {/* Modal Visualização Assinatura */}
+      {isViewModalOpen && editingStudent && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/90 backdrop-blur-md" onClick={() => setIsViewModalOpen(false)} />
+          <div className="relative bg-[#121214] border border-white/10 rounded-2xl p-8 max-w-lg w-full text-center">
+            <h3 className="text-white font-bold mb-4 uppercase text-sm tracking-widest">Assinatura: {editingStudent.user.full_name}</h3>
+            <div className="bg-white rounded-xl p-4 mb-6">
+              <img src={editingStudent.signature_base64 || ''} alt="Assinatura" className="w-full h-auto invert brightness-0" />
+            </div>
+            <button onClick={() => setIsViewModalOpen(false)} className="btn-primary w-full py-3">Fechar</button>
           </div>
         </div>
       )}

@@ -88,10 +88,17 @@ class EnrollmentBase(BaseModel):
     is_active: bool = True
 
 class EnrollmentCreate(EnrollmentBase):
-    pass
+    signature_base64: Optional[str] = None
+
+class EnrollmentUpgrade(BaseModel):
+    new_plan_id: UUID4
+    signature_base64: Optional[str] = None
 
 class EnrollmentResponse(EnrollmentBase):
     id: UUID4
+    contract_signed: bool = False
+    signature_date: Optional[datetime] = None
+    signature_base64: Optional[str] = None
     student: Optional['StudentResponse'] = None
     plan: Optional[PlanResponse] = None
 
