@@ -458,7 +458,7 @@ export const Alunos = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="sm:col-span-2">
                   <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5">Nome Completo</label>
-                  <input required type="text" value={formData.full_name}
+                  <input required id="edit_full_name" name="full_name" type="text" autoComplete="name" value={formData.full_name}
                     onChange={e => setFormData({ ...formData, full_name: e.target.value })}
                     className={inputCls} />
                 </div>
@@ -467,13 +467,13 @@ export const Alunos = () => {
                 </div>
                 <div className="sm:col-span-2">
                   <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5">E-mail</label>
-                  <input required type="email" value={formData.email}
+                  <input required id="edit_email" name="email" type="email" autoComplete="email" value={formData.email}
                     onChange={e => setFormData({ ...formData, email: e.target.value })}
                     className={inputCls} />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5">Telefone</label>
-                  <input type="text" value={formData.phone}
+                  <input id="edit_phone" name="phone" type="text" autoComplete="tel" value={formData.phone}
                     onChange={e => setFormData({ ...formData, phone: maskPhone(e.target.value) })}
                     className={inputCls} />
                 </div>
@@ -548,8 +548,8 @@ export const Alunos = () => {
           <div className="absolute inset-0 bg-black/90 backdrop-blur-md" onClick={() => setIsViewModalOpen(false)} />
           <div className="relative bg-[#121214] border border-white/10 rounded-2xl p-8 max-w-lg w-full text-center">
             <h3 className="text-white font-bold mb-4 uppercase text-sm tracking-widest">Assinatura: {editingStudent.user.full_name}</h3>
-            <div className="bg-white rounded-xl p-4 mb-6">
-              <img src={editingStudent.signature_base64 || ''} alt="Assinatura" className="w-full h-auto invert brightness-0" />
+            <div className="bg-white rounded-xl p-6 mb-6 flex items-center justify-center">
+              <img src={editingStudent.signature_base64 || ''} alt="Assinatura" className="max-w-full h-auto grayscale brightness-0 opacity-80" />
             </div>
             <button onClick={() => setIsViewModalOpen(false)} className="btn-primary w-full py-3">Fechar</button>
           </div>

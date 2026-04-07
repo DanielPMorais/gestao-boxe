@@ -14,6 +14,7 @@ type Plan = {
 type Student = {
   id: string;
   user: { full_name: string; cpf: string };
+  is_enrolled: boolean;
 };
 
 type Enrollment = {
@@ -438,7 +439,7 @@ export const Planos = () => {
                     onChange={e => setEnrollForm({ ...enrollForm, student_id: e.target.value })}
                     className={`${input} appearance-none bg-[#1a1a1e]`}>
                     <option value="">Selecione um aluno...</option>
-                    {students.map(s => (
+                    {students.filter(s => !s.is_enrolled).map(s => (
                       <option key={s.id} value={s.id}>
                         {s.user.full_name} — CPF: {s.user.cpf}
                       </option>
@@ -610,8 +611,8 @@ export const Planos = () => {
           <div className="relative bg-[#121214] border border-white/10 rounded-2xl shadow-2xl w-full max-w-lg p-8 text-center">
             <h3 className="text-white font-bold mb-4 uppercase text-xs tracking-widest">Contrato: {signOwnerName}</h3>
             {signToView ? (
-              <div className="bg-white rounded-xl p-4 mb-6">
-                <img src={signToView} alt="Assinatura" className="w-full h-auto invert brightness-0" />
+              <div className="bg-white rounded-xl p-6 mb-6 flex items-center justify-center">
+                <img src={signToView} alt="Assinatura" className="max-w-full h-auto grayscale brightness-0 opacity-80" />
               </div>
             ) : (
               <div className="py-12 text-gray-500">Nenhuma assinatura digital encontrada para esta matrícula.</div>
