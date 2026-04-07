@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { UserPlus, Search, X, Loader2, Pencil, Trash2, AlertTriangle } from 'lucide-react';
 
 type Student = {
@@ -53,6 +53,9 @@ export const Alunos = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [filterLevel, setFilterLevel] = useState('');
+  const [filterGender, setFilterGender] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
 
   // Create / Edit modal
   const [modalMode, setModalMode] = useState<ModalMode>(null);
@@ -64,11 +67,21 @@ export const Alunos = () => {
   const [deleteTarget, setDeleteTarget] = useState<Student | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  const filtered = students.filter(
-    (s) =>
+  const filtered = students.filter((s) => {
+    const matchSearch =
       s.user.full_name.toLowerCase().includes(search.toLowerCase()) ||
-      s.user.cpf.includes(search)
-  );
+      s.user.cpf.includes(search);
+    const matchLevel = filterLevel === '' || s.technical_level === filterLevel;
+    const matchGender = filterGender === '' || s.gender === filterGender;
+    const matchStatus =
+      filterStatus === '' ||
+      (filterStatus === 'active' && s.user.is_active) ||
+      (filterStatus === 'inactive' && !s.user.is_active);
+    return matchSearch && matchLevel && matchGender && matchStatus;
+  });
+
+  const hasFilters = search || filterLevel || filterGender || filterStatus;
+  const clearFilters = () => { setSearch(''); setFilterLevel(''); setFilterGender(''); setFilterStatus(''); };
 
   const fetchStudents = async () => {
     setLoading(true);
@@ -189,17 +202,66 @@ export const Alunos = () => {
 
       {/* Table Card */}
       <div className="glass-panel overflow-hidden">
-        {/* Search Bar */}
-        <div className="p-4 border-b border-white/5">
-          <div className="relative max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar por nome ou CPF..."
-              className={`${input} pl-9`}
-            />
+        {/* Filtros */}
+        <div className="p-4 border-b border-white/5 flex flex-col gap-3">
+          <div className="flex flex-wrap gap-3">
+            {/* Busca */}
+            <div className="relative flex-1 min-w-[200px]">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Buscar por nome ou CPF..."
+                className={`${input} pl-9`}
+              />
+            </div>
+
+            {/* Nível Técnico */}
+            <select
+              value={filterLevel}
+              onChange={(e) => setFilterLevel(e.target.value)}
+              className="bg-black/40 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-gray-300 outline-none focus:border-boxing-primary transition-colors appearance-none cursor-pointer"
+            >
+              <option value="">Todos os Níveis</option>
+              <option value="BEGINNER">Iniciante</option>
+              <option value="AMATEUR">Amador</option>
+              <option value="ATHLETE">Atleta</option>
+            </select>
+
+            {/* Sexo */}
+            <select
+              value={filterGender}
+              onChange={(e) => setFilterGender(e.target.value)}
+              className="bg-black/40 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-gray-300 outline-none focus:border-boxing-primary transition-colors appearance-none cursor-pointer"
+            >
+              <option value="">Todos os Sexos</option>
+              <option value="M">Masculino</option>
+              <option value="F">Feminino</option>
+              <option value="OUTRO">Outro</option>
+            </select>
+
+            {/* Status */}
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              className="bg-black/40 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-gray-300 outline-none focus:border-boxing-primary transition-colors appearance-none cursor-pointer"
+            >
+              <option value="">Todos os Status</option>
+              <option value="active">Ativo</option>
+              <option value="inactive">Inativo</option>
+            </select>
+
+            {/* Botão limpar filtros */}
+            {hasFilters && (
+              <button
+                onClick={clearFilters}
+                className="px-3 py-2.5 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-white/5 border border-white/10 transition-colors flex items-center gap-1.5 whitespace-nowrap"
+              >
+                <X size={14} />
+                Limpar filtros
+              </button>
+            )}
           </div>
         </div>
 

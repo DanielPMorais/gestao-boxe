@@ -4,7 +4,7 @@ from sqlalchemy import func
 from datetime import datetime, date
 
 from app.core.database import get_db
-from app.models.domain import Enrollment, Checkin, Invoice, InvoiceStatusEnum
+from app.models.domain import Student, User, Enrollment, Checkin, Invoice, InvoiceStatusEnum
 
 router = APIRouter()
 
@@ -16,11 +16,9 @@ def get_dashboard_metrics(db: Session = Depends(get_db)):
     current_month = now.month
     current_year = now.year
 
-    # 1. Alunos Ativos (matriculas ativas correntes)
-    active_students = db.query(Enrollment).filter(
-        Enrollment.is_active == True,
-        Enrollment.start_date <= now.date(),
-        Enrollment.end_date >= now.date()
+    # 1. Alunos Ativos (alunos com cadastro ativo no sistema)
+    active_students = db.query(Student).join(Student.user).filter(
+        User.is_active == True
     ).count()
 
     # 2. Check-ins Hoje

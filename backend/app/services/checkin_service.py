@@ -1,9 +1,10 @@
 from sqlalchemy.orm import Session
+from sqlalchemy import desc
 from datetime import datetime, timedelta
 from typing import Optional
 from fastapi import HTTPException
 
-from app.models.domain import Checkin, Enrollment, Invoice, Plan, InvoiceStatusEnum
+from app.models.domain import Checkin, Enrollment, Invoice, Plan, InvoiceStatusEnum, Student, User
 from app.schemas.domain import CheckinCreate
 
 def get_week_range(date_obj: datetime):
@@ -60,3 +61,25 @@ def create_checkin(db: Session, checkin_in: CheckinCreate) -> Checkin:
     db.refresh(new_checkin)
     
     return new_checkin
+
+def get_recent_checkins(db: Session, limit: int = 50):
+    """Retorna os check-ins mais recentes com join nos dados do aluno."""
+    return (
+        db.query(Checkin)
+        .order_by(desc(Checkin.checkin_date))
+        .limit(limit)
+        .all()
+    )
+
+def find_student_by_cpf(db: Session, cpf: str):
+    """Busca aluno por CPF e retorna dados resumidos para sugestão de check-in."""
+    user = db.query(User).filter(User.cpf == cpf, User.is_active == True).first()
+    if not user or not user.student_profile:
+        raise HTTPException(status_code=404, detail="Nenhum aluno ativo encontrado com este CPF.")
+    student = user.student_profile
+    return {
+        "student_id": str(student.id),
+        "full_name": user.full_name,
+        "cpf": user.cpf,
+        "technical_level": student.technical_level.value if student.technical_level else None,
+    }
