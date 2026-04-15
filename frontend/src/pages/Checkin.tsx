@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Search, CheckCircle2, XCircle, Clock, Loader2, ShieldCheck, User } from 'lucide-react';
+import { Search, CheckCircle2, XCircle, Clock, Loader2, ShieldCheck, User, AlertCircle } from 'lucide-react';
 
 type FoundStudent = {
   student_id: string;

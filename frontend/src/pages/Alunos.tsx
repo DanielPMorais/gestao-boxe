@@ -71,10 +71,25 @@ export const Alunos = () => {
   const [studentToDelete, setStudentToDelete] = useState<Student | null>(null);
   const sigCanvas = useRef<SignatureCanvas>(null);
 
+  const [filterLevel, setFilterLevel] = useState('ALL');
+  const [filterWaiver, setFilterWaiver] = useState('ALL');
+  const [filterStatus, setFilterStatus] = useState('ALL');
+  const [filterGender, setFilterGender] = useState('ALL');
+
   const filtered = students.filter(
-    (s) =>
-      s.user.full_name.toLowerCase().includes(search.toLowerCase()) ||
-      s.user.cpf.includes(search)
+    (s) => {
+      const matchSearch = s.user.full_name.toLowerCase().includes(search.toLowerCase()) || s.user.cpf.includes(search);
+      const matchLevel = filterLevel === 'ALL' || s.technical_level === filterLevel;
+      const matchWaiver = filterWaiver === 'ALL' || (filterWaiver === 'SIGNED' ? s.contract_signed : !s.contract_signed);
+      let matchStatus = true;
+      if (filterStatus === 'ACTIVE') matchStatus = s.user.is_active;
+      else if (filterStatus === 'INACTIVE') matchStatus = !s.user.is_active;
+      else if (filterStatus === 'ENROLLED') matchStatus = s.is_enrolled;
+      else if (filterStatus === 'NOT_ENROLLED') matchStatus = !s.is_enrolled && s.user.is_active;
+      const matchGender = filterGender === 'ALL' || s.gender === filterGender;
+
+      return matchSearch && matchLevel && matchWaiver && matchStatus && matchGender;
+    }
   );
 
   const fetchStudents = async () => {
@@ -226,8 +241,8 @@ export const Alunos = () => {
 
       {/* Table Card */}
       <div className="glass-panel overflow-hidden">
-        <div className="p-4 border-b border-white/5">
-          <div className="relative max-w-md">
+        <div className="p-4 border-b border-white/5 flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
+          <div className="relative w-full lg:w-auto lg:flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
             <input
               type="text"
@@ -238,6 +253,50 @@ export const Alunos = () => {
               placeholder="Buscar por nome ou CPF..."
               className={`${inputCls} pl-9`}
             />
+          </div>
+          <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+            <select
+              value={filterLevel}
+              onChange={(e) => setFilterLevel(e.target.value)}
+              className="bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-white text-sm outline-none focus:border-boxing-primary transition-colors cursor-pointer appearance-none min-w-[140px]"
+            >
+              <option className="bg-zinc-900" value="ALL">Nível (Todos)</option>
+              <option className="bg-zinc-900" value="BEGINNER">Iniciante</option>
+              <option className="bg-zinc-900" value="AMATEUR">Amador</option>
+              <option className="bg-zinc-900" value="ATHLETE">Atleta</option>
+            </select>
+
+            <select
+              value={filterWaiver}
+              onChange={(e) => setFilterWaiver(e.target.value)}
+              className="bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-white text-sm outline-none focus:border-boxing-primary transition-colors cursor-pointer appearance-none min-w-[140px]"
+            >
+              <option className="bg-zinc-900" value="ALL">Waiver (Todos)</option>
+              <option className="bg-zinc-900" value="SIGNED">Assinado</option>
+              <option className="bg-zinc-900" value="PENDING">Pendente</option>
+            </select>
+
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              className="bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-white text-sm outline-none focus:border-boxing-primary transition-colors cursor-pointer appearance-none min-w-[140px]"
+            >
+              <option className="bg-zinc-900" value="ALL">Situação (Todas)</option>
+              <option className="bg-zinc-900" value="ACTIVE">Ativo</option>
+              <option className="bg-zinc-900" value="INACTIVE">Inativo</option>
+              <option className="bg-zinc-900" value="ENROLLED">Matriculado</option>
+              <option className="bg-zinc-900" value="NOT_ENROLLED">Sem Plano</option>
+            </select>
+
+            <select
+              value={filterGender}
+              onChange={(e) => setFilterGender(e.target.value)}
+              className="bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-white text-sm outline-none focus:border-boxing-primary transition-colors cursor-pointer appearance-none min-w-[140px]"
+            >
+              <option className="bg-zinc-900" value="ALL">Sexo (Todos)</option>
+              <option className="bg-zinc-900" value="M">Masculino</option>
+              <option className="bg-zinc-900" value="F">Feminino</option>
+            </select>
           </div>
         </div>
 
