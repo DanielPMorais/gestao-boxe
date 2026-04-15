@@ -24,9 +24,9 @@ def get_recent_checkins(limit: int = Query(50, le=200), db: Session = Depends(ge
     return checkin_service.get_recent_checkins(db=db, limit=limit)
 
 @router.get("/search-student")
-def search_student_by_cpf(
-    cpf: str = Query(..., description="CPF do aluno a buscar"),
+def search_student(
+    query: str = Query(..., description="CPF ou Nome do aluno a buscar"),
     db: Session = Depends(get_db)
 ):
-    """Busca um aluno pelo CPF para pré-preencher o formulário de check-in."""
-    return checkin_service.find_student_by_cpf(db=db, cpf=cpf)
+    """Busca um aluno pelo CPF ou Nome para pré-preencher o formulário de check-in."""
+    return checkin_service.find_student(db=db, query=query)

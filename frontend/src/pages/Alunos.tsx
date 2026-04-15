@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { UserPlus, Search, X, Loader2, Pencil, Trash2, ShieldCheck, RefreshCw, CheckCircle2, AlertCircle, Save } from 'lucide-react';
+import { UserPlus, Search, X, Loader2, Pencil, Trash2, ShieldCheck, RefreshCw, CheckCircle2, AlertCircle, Save, Download } from 'lucide-react';
 import SignatureCanvas from 'react-signature-canvas';
 
 type Student = {
@@ -233,10 +233,28 @@ export const Alunos = () => {
           <h1 className="font-display font-bold text-3xl md:text-4xl text-white">Alunos</h1>
           <p className="text-gray-400 mt-1">Gestão de matrículas e assinaturas</p>
         </div>
-        <button className="btn-primary w-full md:w-auto" onClick={openModal}>
-          <UserPlus size={18} />
-          Novo Aluno
-        </button>
+        <div className="flex gap-2 w-full md:w-auto">
+          <button 
+            onClick={() => {
+              const headers = ["Nome", "CPF", "Email", "Status"];
+              const rows = filtered.map(s => [s.user.full_name, s.user.cpf, s.user.email, s.user.is_active ? "Ativo" : "Inativo"]);
+              const csv = [headers, ...rows].map(e => e.join(",")).join("\n");
+              const blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' });
+              const url = URL.createObjectURL(blob);
+              const link = document.createElement("a");
+              link.href = url;
+              link.download = "lista_alunos.csv";
+              link.click();
+            }}
+            className="flex items-center justify-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white rounded-lg transition-colors text-sm font-medium border border-white/5 flex-1 md:flex-none"
+          >
+            <Download size={18} /> Exportar CSV
+          </button>
+          <button className="btn-primary flex-1 md:flex-none" onClick={openModal}>
+            <UserPlus size={18} />
+            Novo Aluno
+          </button>
+        </div>
       </header>
 
       {/* Table Card */}

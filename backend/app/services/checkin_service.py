@@ -17,6 +17,18 @@ def get_week_range(date_obj: datetime):
 
 def create_checkin(db: Session, checkin_in: CheckinCreate) -> Checkin:
     now = datetime.now()
+
+    # [NOVO] 0. Bloqueio Anti-Spam / Cooldown de Check-in
+    recent_checkin = db.query(Checkin).filter(
+        Checkin.student_id == checkin_in.student_id,
+        Checkin.checkin_date >= now - timedelta(hours=4)
+    ).first()
+    
+    if recent_checkin:
+        raise HTTPException(
+            status_code=400, 
+            detail="Este aluno já realizou check-in recentemente. Aguarde algumas horas."
+        )
     
     # 1. Encontrar matrícula ativa e válida do aluno
     active_enrollment = db.query(Enrollment).filter(
@@ -71,11 +83,18 @@ def get_recent_checkins(db: Session, limit: int = 50):
         .all()
     )
 
-def find_student_by_cpf(db: Session, cpf: str):
-    """Busca aluno por CPF e retorna dados resumidos para sugestão de check-in."""
-    user = db.query(User).filter(User.cpf == cpf, User.is_active == True).first()
+def find_student(db: Session, query: str):
+    """Busca aluno por CPF exato ou LIKE no nome e retorna dados resumidos para sugestão de check-in."""
+    sanitized_query = query.replace(".", "").replace("-", "")
+    
+    user = db.query(User).filter(
+        User.is_active == True,
+        (User.cpf == sanitized_query) | (User.full_name.ilike(f"%{query}%"))
+    ).first()
+    
     if not user or not user.student_profile:
-        raise HTTPException(status_code=404, detail="Nenhum aluno ativo encontrado com este CPF.")
+        raise HTTPException(status_code=404, detail="Nenhum aluno ativo encontrado com essa busca.")
+        
     student = user.student_profile
     return {
         "student_id": str(student.id),

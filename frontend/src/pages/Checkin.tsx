@@ -54,7 +54,7 @@ function formatDateTime(isoString: string) {
 }
 
 export const Checkin = () => {
-  const [cpf, setCpf] = useState('');
+  const [query, setQuery] = useState('');
   const [searching, setSearching] = useState(false);
   const [foundStudent, setFoundStudent] = useState<FoundStudent | null>(null);
   const [searchError, setSearchError] = useState('');
@@ -86,7 +86,7 @@ export const Checkin = () => {
     if (feedback.type === 'success' || feedback.type === 'error') {
       const id = setTimeout(() => {
         setFeedback({ type: 'idle' });
-        setCpf('');
+        setQuery('');
         setFoundStudent(null);
         inputRef.current?.focus();
       }, 4000);
@@ -94,16 +94,15 @@ export const Checkin = () => {
     }
   }, [feedback]);
 
-  const handleCpfSearch = async (e: React.FormEvent) => {
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    const cleanCPF = cpf.replace(/\D/g, "");
-    if (!cleanCPF) return;
+    if (!query.trim()) return;
     
     setSearching(true);
     setSearchError('');
     setFoundStudent(null);
     try {
-      const res = await fetch(`http://localhost:8000/api/checkins/search-student?cpf=${encodeURIComponent(cleanCPF)}`);
+      const res = await fetch(`http://localhost:8000/api/checkins/search-student?query=${encodeURIComponent(query.trim())}`);
       if (!res.ok) {
         const err = await res.json();
         setSearchError(err.detail ?? 'Aluno não encontrado.');
@@ -200,26 +199,36 @@ export const Checkin = () => {
               <h2 className="font-display font-bold text-white text-xl uppercase italic tracking-tight">Identificação</h2>
             </div>
 
-            <form onSubmit={handleCpfSearch} className="flex flex-col gap-4">
+            <form onSubmit={handleSearch} className="flex flex-col gap-4">
               <div className="relative">
                 <input
                   ref={inputRef}
                   type="text"
-                  value={cpf}
-                  onChange={e => { setCpf(maskCPF(e.target.value)); setSearchError(''); setFoundStudent(null); }}
-                  placeholder="000.000.000-00"
+                  value={query}
+                  onChange={e => {
+                    const val = e.target.value;
+                    // Se digitar apenas números, tenta aplicar máscara de CPF, senão deixa livre
+                    if (/^[\d.-]+$/.test(val) && val.replace(/\D/g, '').length <= 11) {
+                      setQuery(maskCPF(val));
+                    } else {
+                      setQuery(val);
+                    }
+                    setSearchError('');
+                    setFoundStudent(null);
+                  }}
+                  placeholder="Nome ou CPF (000.000.000-00)"
                   className={inputCls}
                   disabled={feedback.type === 'loading'}
                 />
-                {!cpf && <Search className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-600" size={20} />}
+                {!query && <Search className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-600" size={20} />}
               </div>
               
               <button
                 type="submit"
-                disabled={searching || !cpf.trim() || feedback.type !== 'idle'}
+                disabled={searching || !query.trim() || feedback.type !== 'idle'}
                 className="btn-primary w-full py-4 text-lg font-bold uppercase italic tracking-widest shadow-lg shadow-boxing-primary/20"
               >
-                {searching ? <Loader2 className="animate-spin" size={24} /> : "Consultar CPF"}
+                {searching ? <Loader2 className="animate-spin" size={24} /> : "Procurar Aluno"}
               </button>
             </form>
 

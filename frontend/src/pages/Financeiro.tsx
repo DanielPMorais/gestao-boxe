@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { CheckCircle2, Clock, AlertTriangle, TrendingUp, Loader2, RefreshCw, CheckCheck } from 'lucide-react';
+import { CheckCircle2, Clock, AlertTriangle, TrendingUp, Loader2, RefreshCw, CheckCheck, Download, FileText } from 'lucide-react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 type InvoiceStatus = 'PENDING' | 'PAID' | 'LATE';
@@ -188,6 +190,55 @@ export const Financeiro = () => {
               )}
             </button>
           ))}
+          <div className="flex-1" />
+          <div className="flex gap-2">
+            <button 
+              onClick={() => {
+                const headers = ["Aluno", "Plano", "Valor", "Vencimento", "Status"];
+                const rows = filtered.map(i => [
+                  i.enrollment?.student?.user?.full_name || "N/A",
+                  i.enrollment?.plan?.name || "N/A",
+                  i.amount,
+                  i.due_date,
+                  i.status
+                ]);
+                const csv = [headers, ...rows].map(e => e.join(",")).join("\n");
+                const blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.href = url;
+                link.download = `financeiro_${filter.toLowerCase()}.csv`;
+                link.click();
+              }}
+              className="px-3 py-1.5 rounded-lg text-xs font-bold text-gray-500 hover:text-white hover:bg-white/5 transition-all flex items-center gap-2"
+              title="Exportar CSV"
+            >
+              <Download size={14} /> CSV
+            </button>
+            <button 
+              onClick={() => {
+                const doc = new jsPDF();
+                doc.text("GESTÃO BOXE - RELATÓRIO FINANCEIRO", 14, 20);
+                autoTable(doc, {
+                  startY: 30,
+                  head: [['Aluno', 'Plano', 'Valor', 'Vencimento', 'Status']],
+                  body: filtered.map(i => [
+                    i.enrollment?.student?.user?.full_name || "N/A",
+                    i.enrollment?.plan?.name || "N/A",
+                    BRL(i.amount),
+                    fmtDate(i.due_date),
+                    i.status
+                  ]),
+                  headStyles: { fillColor: [239, 68, 68] }
+                });
+                doc.save(`financeiro_${filter.toLowerCase()}.pdf`);
+              }}
+              className="px-3 py-1.5 rounded-lg text-xs font-bold text-gray-500 hover:text-white hover:bg-white/5 transition-all flex items-center gap-2"
+              title="Gerar PDF"
+            >
+              <FileText size={14} /> PDF
+            </button>
+          </div>
         </div>
 
         {/* Table */}

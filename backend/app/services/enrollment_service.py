@@ -42,10 +42,17 @@ def create_enrollment(db: Session, enroll_in: EnrollmentCreate):
     db.flush()
 
     # Gerar fatura automaticamente para o primeiro mês
+    # [MODIFICADO] Se for retroativo e a data + 5 dias já passou, coloca o vencimento para HOJE.
+    calculated_due_date = start + timedelta(days=5)
+    if calculated_due_date < date.today():
+        actual_due_date = date.today()
+    else:
+        actual_due_date = calculated_due_date
+        
     invoice = Invoice(
         enrollment_id=enrollment.id,
         amount=plan.price,
-        due_date=start + timedelta(days=5),  # vence 5 dias após o início
+        due_date=actual_due_date, 
         status=InvoiceStatusEnum.PENDING
     )
     db.add(invoice)
