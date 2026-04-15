@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { CheckCircle2, Clock, AlertTriangle, TrendingUp, Loader2, RefreshCw, CheckCheck, Download, FileText } from 'lucide-react';
+import { CheckCircle, Clock, AlertTriangle, TrendingUp, Loader2, RefreshCw, CheckCheck, Download, FileText } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -34,7 +34,7 @@ const fmtDate = (d: string) =>
   new Date(d).toLocaleDateString('pt-BR');
 
 const STATUS_CONFIG: Record<InvoiceStatus, { label: string; badge: string; icon: React.ReactNode }> = {
-  PAID:    { label: 'Paga',      badge: 'bg-emerald-500/15 text-emerald-400', icon: <CheckCircle2 size={13} /> },
+  PAID:    { label: 'Paga',      badge: 'bg-emerald-500/15 text-emerald-400', icon: <CheckCircle size={13} /> },
   PENDING: { label: 'Pendente',  badge: 'bg-amber-500/15 text-amber-400',     icon: <Clock size={13} /> },
   LATE:    { label: 'Atrasada',  badge: 'bg-red-500/15 text-red-400',         icon: <AlertTriangle size={13} /> },
 };

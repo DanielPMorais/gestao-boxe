@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Plus, Trash2, Loader2, X, BookOpen, ClipboardList, Calendar, Zap, ShieldCheck, AlertCircle, CheckCircle2, TrendingUp, HandCoins } from 'lucide-react';
-import SignatureCanvas from 'react-signature-canvas';
+import SignatureCanvas from '../components/SignatureCanvas';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 type Plan = {
@@ -87,7 +87,7 @@ export const Planos = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [enrollForm, setEnrollForm] = useState({ student_id: '', plan_id: '', start_date: '' });
   const [enrollSubmitting, setEnrollSubmitting] = useState(false);
-  const sigCanvasEnroll = useRef<SignatureCanvas>(null);
+  const sigCanvasEnroll = useRef<React.ComponentRef<typeof SignatureCanvas> | null>(null);
 
   // Upgrade state
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
@@ -185,7 +185,7 @@ export const Planos = () => {
       if (!r.ok) { const e = await r.json(); alert(`Erro: ${e.detail}`); return; }
       setShowEnrollModal(false);
       fetchEnrollments();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Erro ao matricular:', err);
       alert('Falha na conexão com o servidor.');
     } finally { setEnrollSubmitting(false); }

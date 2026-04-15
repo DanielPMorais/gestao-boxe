@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { UserPlus, Search, X, Loader2, Pencil, Trash2, ShieldCheck, RefreshCw, CheckCircle2, AlertCircle, Save, Download } from 'lucide-react';
-import SignatureCanvas from 'react-signature-canvas';
+import { UserPlus, Search, X, Loader2, Pencil, Trash2, ShieldCheck, RefreshCw, CheckCircle, AlertCircle, Save, Download } from 'lucide-react';
+import SignatureCanvas from '../components/SignatureCanvas';
 
 type Student = {
   id: string;
@@ -69,7 +69,7 @@ export const Alunos = () => {
   const [formData, setFormData] = useState(EMPTY_FORM);
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
   const [studentToDelete, setStudentToDelete] = useState<Student | null>(null);
-  const sigCanvas = useRef<SignatureCanvas>(null);
+  const sigCanvas = useRef<React.ComponentRef<typeof SignatureCanvas> | null>(null);
 
   const [filterLevel, setFilterLevel] = useState('ALL');
   const [filterWaiver, setFilterWaiver] = useState('ALL');
@@ -166,9 +166,10 @@ export const Alunos = () => {
       }
       setIsModalOpen(false);
       fetchStudents();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Erro ao processar cadastro:', error);
-      alert(`Erro inesperado: ${error.message || 'Consulte o log do console.'}`);
+      const message = error instanceof Error ? error.message : 'Consulte o log do console.';
+      alert(`Erro inesperado: ${message}`);
     } finally {
       setSubmitting(false);
     }
@@ -507,7 +508,7 @@ export const Alunos = () => {
                 </button>
                 <button type="submit" disabled={submitting} className="btn-primary min-w-[200px] py-3">
                   {submitting ? <Loader2 className="animate-spin" size={18} /> : (
-                    <span className="flex items-center gap-2 tracking-widest"><CheckCircle2 size={18} /> SALVAR ATLETA</span>
+                    <span className="flex items-center gap-2 tracking-widest"><CheckCircle size={18} /> SALVAR ATLETA</span>
                   )}
                 </button>
               </div>
